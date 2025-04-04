@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Resizer & Compressor</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="description" content="A simple tool to resize and compress images">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- User Guide Button -->
+        <div class="user-guide-container">
+            <button id="guideBtn" class="guide-btn" aria-label="User Guide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </button>
+            <div id="guideDropdown" class="guide-dropdown hidden">
+                <div class="guide-section">
+                    <h4>Quick Guide</h4>
+                    <ul>
+                        <li>Upload images by drag & drop or click</li>
+                        <li>Set desired dimensions and quality</li>
+                        <li>Apply filters and adjustments</li>
+                        <li>Download processed images</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h4>Settings</h4>
+                    <div class="setting-item">
+                        <label>Default Quality</label>
+                        <input type="range" id="defaultQuality" min="1" max="100" value="80">
+                        <span id="defaultQualityValue">80%</span>
+                    </div>
+                    <div class="setting-item">
+                        <label>Default Format</label>
+                        <select id="defaultFormat">
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                            <option value="webp">WebP</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Theme</label>
+                        <select id="themeSelect">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <h1>Photo Resizer & Compressor</h1>
+            
+            <!-- Image Upload Section -->
+            <div class="section">
+                <label for="imageUpload">Upload Image</label>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </div>
+                    <p>Click to upload or drag and drop</p>
+                    <p class="text-sm">PNG, JPG or GIF</p>
+                    <input type="file" id="imageUpload" class="hidden" accept="image/*" multiple>
+                </div>
+            </div>
+
+            <!-- Image Information -->
+            <div id="imageInfo" class="section image-info hidden">
+                <div class="info-grid">
+                    <div>
+                        <span class="info-label">Original Size:</span>
+                        <span id="originalSize">-</span>
+                    </div>
+                    <div>
+                        <span class="info-label">Dimensions:</span>
+                        <span id="originalDimensions">-</span>
+                    </div>
+                    <div>
+                        <span class="info-label">Format:</span>
+                        <span id="originalFormat">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Format -->
+            <div class="section">
+                <label for="imageFormat">Output Format</label>
+                <select id="imageFormat" class="format-select">
+                    <option value="jpeg">JPEG</option>
+                    <option value="png">PNG</option>
+                    <option value="webp">WebP</option>
+                </select>
+            </div>
+
+            <!-- Image Rotation -->
+            <div class="section">
+                <label>Image Rotation</label>
+                <div class="rotation-controls">
+                    <button id="rotateLeft" class="btn btn-icon" title="Rotate Left">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/>
+                        </svg>
+                    </button>
+                    <span id="rotationValue">0°</span>
+                    <button id="rotateRight" class="btn btn-icon" title="Rotate Right">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Image Cropping -->
+            <div class="section">
+                <label>Crop Image</label>
+                <div class="crop-controls">
+                    <div class="crop-grid">
+                        <div>
+                            <label for="cropX">X Position</label>
+                            <input type="number" id="cropX" value="0" min="0">
+                        </div>
+                        <div>
+                            <label for="cropY">Y Position</label>
+                            <input type="number" id="cropY" value="0" min="0">
+                        </div>
+                        <div>
+                            <label for="cropWidth">Width</label>
+                            <input type="number" id="cropWidth" value="0" min="0">
+                        </div>
+                        <div>
+                            <label for="cropHeight">Height</label>
+                            <input type="number" id="cropHeight" value="0" min="0">
+                        </div>
+                    </div>
+                    <button id="resetCrop" class="btn btn-secondary">Reset Crop</button>
+                </div>
+            </div>
+
+            <!-- More Preset Sizes -->
+            <div class="section">
+                <label>More Preset Sizes</label>
+                <div class="preset-buttons">
+                    <button class="preset-btn" data-width="800" data-height="600">800x600</button>
+                    <button class="preset-btn" data-width="1024" data-height="768">1024x768</button>
+                    <button class="preset-btn" data-width="1920" data-height="1080">1920x1080</button>
+                    <button class="preset-btn" data-width="1080" data-height="1080">1080x1080</button>
+                    <button class="preset-btn" data-width="1280" data-height="720">1280x720</button>
+                    <button class="preset-btn" data-width="2560" data-height="1440">2560x1440</button>
+                    <button class="preset-btn" data-width="3840" data-height="2160">4K</button>
+                    <button class="preset-btn" data-width="7680" data-height="4320">8K</button>
+                </div>
+            </div>
+
+            <!-- Advanced Filters -->
+            <div class="section">
+                <label>Advanced Filters</label>
+                <div class="filter-grid">
+                    <div class="filter-option">
+                        <label for="brightness">Brightness</label>
+                        <input type="range" id="brightness" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-option">
+                        <label for="contrast">Contrast</label>
+                        <input type="range" id="contrast" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-option">
+                        <label for="saturation">Saturation</label>
+                        <input type="range" id="saturation" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-option">
+                        <label for="sharpness">Sharpness</label>
+                        <input type="range" id="sharpness" min="0" max="200" value="100">
+                    </div>
+                    <div class="filter-option">
+                        <label for="blur">Blur</label>
+                        <input type="range" id="blur" min="0" max="20" value="0">
+                    </div>
+                    <div class="filter-option">
+                        <label for="grayscale">Grayscale</label>
+                        <input type="range" id="grayscale" min="0" max="100" value="0">
+                    </div>
+                    <div class="filter-option">
+                        <label for="sepia">Sepia</label>
+                        <input type="range" id="sepia" min="0" max="100" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Dimensions -->
+            <div class="section">
+                <label>Image Dimensions</label>
+                <div class="dimensions-grid">
+                    <div>
+                        <label for="width">Width (px)</label>
+                        <input type="number" id="width" min="1" value="0">
+                    </div>
+                    <div>
+                        <label for="height">Height (px)</label>
+                        <input type="number" id="height" min="1" value="0">
+                    </div>
+                </div>
+                <div class="aspect-ratio-container">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="lockAspectRatio" checked>
+                        Lock Aspect Ratio
+                    </label>
+                </div>
+            </div>
+
+            <!-- Image Quality -->
+            <div class="section">
+                <label for="quality">Quality</label>
+                <div class="slider-container">
+                    <input type="range" id="quality" min="1" max="100" value="80">
+                    <span id="qualityValue">80%</span>
+                </div>
+            </div>
+
+            <!-- Resize Button -->
+            <div class="section">
+                <button id="resizeBtn" class="btn btn-block">
+                    <span id="resizeBtnText">Resize & Compress</span>
+                    <div id="loadingSpinner" class="spinner hidden"></div>
+                </button>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="previewContainer" class="preview-container">
+                <h3 class="preview-title">Preview</h3>
+                <div class="preview-comparison">
+                    <div class="preview-original">
+                        <h4>Original Image</h4>
+                        <div class="preview-wrapper">
+                            <img id="originalPreview" alt="Original image" class="preview-image hidden clickable">
+                            <div class="preview-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <p>Original image will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="preview-processed">
+                        <h4>Processed Image</h4>
+                        <div class="preview-wrapper">
+                            <img id="preview" alt="Resized image preview" class="preview-image hidden clickable">
+                            <div class="preview-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <p>Processed image will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="preview-info">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Original Size:</span>
+                            <span id="originalSize" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">New Size:</span>
+                            <span id="newSize" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Original Dimensions:</span>
+                            <span id="originalDimensions" class="info-value">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">New Dimensions:</span>
+                            <span id="newDimensions" class="info-value">-</span>
+                        </div>
+                    </div>
+                </div>
+                <button id="downloadBtn" class="btn btn-block mt-4 hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download Processed Image
+                </button>
+            </div>
+
+            <!-- Image Preview Modal -->
+            <div id="imageModal" class="modal">
+                <span class="modal-close" title="Close">&times;</span>
+                <div class="modal-content-wrapper">
+                    <img class="modal-content" id="modalImage" alt="Full size preview">
+                    <div id="modalCaption" class="modal-caption"></div>
+                </div>
+            </div>
+
+            <!-- Batch Processing Section -->
+            <div class="section batch-section">
+                <label>Batch Processing</label>
+                <div class="batch-controls">
+                    <div class="upload-area" id="batchUploadArea">
+                        <div class="upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <p>Click to upload multiple images</p>
+                        <p class="text-sm">PNG, JPG or GIF</p>
+                        <input type="file" id="batchUpload" class="hidden" accept="image/*" multiple>
+                    </div>
+                    <div id="batchFiles" class="batch-files">
+                        <div class="batch-progress hidden">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div class="progress-info">
+                                <span class="progress-text">Processing: </span>
+                                <span class="progress-count">0/0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="batch-actions">
+                        <button id="clearBatch" class="btn btn-secondary">Clear All</button>
+                        <button id="processBatch" class="btn btn-primary">Process All Images</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch((err) => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // DOM Elements
+        const imageUpload = document.getElementById('imageUpload');
+        const uploadArea = document.getElementById('uploadArea');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const preview = document.getElementById('preview');
+        const previewContainer = document.getElementById('previewContainer');
+        const qualitySlider = document.getElementById('quality');
+        const qualityValue = document.getElementById('qualityValue');
+        const resizeBtn = document.getElementById('resizeBtn');
+        const resizeBtnText = document.getElementById('resizeBtnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const lockAspectRatio = document.getElementById('lockAspectRatio');
+        const imageFormat = document.getElementById('imageFormat');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        const brightnessSlider = document.getElementById('brightness');
+        const contrastSlider = document.getElementById('contrast');
+        const saturationSlider = document.getElementById('saturation');
+        const imageInfo = document.getElementById('imageInfo');
+        const originalSize = document.getElementById('originalSize');
+        const originalDimensions = document.getElementById('originalDimensions');
+        const originalFormat = document.getElementById('originalFormat');
+        const newSize = document.getElementById('newSize');
+        const newDimensions = document.getElementById('newDimensions');
+        const rotateLeft = document.getElementById('rotateLeft');
+        const rotateRight = document.getElementById('rotateRight');
+        const rotationValue = document.getElementById('rotationValue');
+        const cropX = document.getElementById('cropX');
+        const cropY = document.getElementById('cropY');
+        const cropWidth = document.getElementById('cropWidth');
+        const cropHeight = document.getElementById('cropHeight');
+        const resetCrop = document.getElementById('resetCrop');
+        const sharpnessSlider = document.getElementById('sharpness');
+
+        // Store the original image data and rotation state
+        let originalImageData = null;
+        let currentPreviewData = null;
+        let currentRotation = 0;
+        let originalAspectRatio = 1;
+        let debounceTimer = null;
+
+        // Function to debounce updates
+        function debounce(func, wait) {
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(debounceTimer);
+                    func(...args);
+                };
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(later, wait);
+            };
+        }
+
+        // Function to convert base64 to Blob
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64.split(',')[1]);
+            const byteArrays = [];
+            
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+                const byteNumbers = new Array(slice.length);
+                
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+            
+            return new Blob(byteArrays, { type: mimeType });
+        }
+
+        // Function to update preview in real-time
+        const updatePreview = debounce(async () => {
+            if (!originalImageData) return;
+
+            const width = parseInt(widthInput.value) || 0;
+            const height = parseInt(heightInput.value) || 0;
+            const quality = parseInt(qualitySlider.value);
+
+            if (width <= 0 || height <= 0) return;
+
+            try {
+                // Show loading state
+                preview.classList.add('processing');
+                
+                // Process image
+                const processedImageData = await resizeAndCompressImage(
+                    originalImageData,
+                    width,
+                    height,
+                    quality
+                );
+
+                // Update preview
+                preview.src = processedImageData;
+                currentPreviewData = processedImageData;
+                
+                // Update download button
+                downloadBtn.onclick = function() {
+                    const blob = base64ToBlob(processedImageData, `image/${imageFormat.value}`);
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `resized-image-${width}x${height}-q${quality}.${imageFormat.value}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    showToast('Download started');
+                };
+
+                // Update size information
+                const size = (processedImageData.length * 0.75 / 1024).toFixed(2);
+                newSize.textContent = `${size} KB`;
+                newDimensions.textContent = `${width}x${height}`;
+
+            } catch (error) {
+                console.error('Error updating preview:', error);
+                showToast('Error processing image', 'error');
+            } finally {
+                preview.classList.remove('processing');
+            }
+        }, 300);
+
+        // Add event listeners for real-time updates
+        widthInput.addEventListener('input', () => {
+            if (lockAspectRatio.checked) {
+                const width = parseInt(widthInput.value);
+                if (!isNaN(width)) {
+                    heightInput.value = Math.round(width / originalAspectRatio);
+                }
+            }
+            updatePreview();
+        });
+
+        heightInput.addEventListener('input', () => {
+            if (lockAspectRatio.checked) {
+                const height = parseInt(heightInput.value);
+                if (!isNaN(height)) {
+                    widthInput.value = Math.round(height * originalAspectRatio);
+                }
+            }
+            updatePreview();
+        });
+
+        qualitySlider.addEventListener('input', () => {
+            qualityValue.textContent = qualitySlider.value + '%';
+            updatePreview();
+        });
+
+        brightnessSlider.addEventListener('input', updatePreview);
+        contrastSlider.addEventListener('input', updatePreview);
+        saturationSlider.addEventListener('input', updatePreview);
+        sharpnessSlider.addEventListener('input', updatePreview);
+
+        imageFormat.addEventListener('change', updatePreview);
+
+        // Handle preset buttons
+        presetButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const width = parseInt(button.dataset.width);
+                const height = parseInt(button.dataset.height);
+                widthInput.value = width;
+                heightInput.value = height;
+                originalAspectRatio = width / height;
+                updatePreview();
+            });
+        });
+
+        // Function to show toast notification
+        function showToast(message, type = 'success') {
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: type === 'success' ? "#4CAF50" : "#f44336",
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        // Function to toggle loading state
+        function setLoading(isLoading) {
+            if (isLoading) {
+                resizeBtn.disabled = true;
+                resizeBtnText.textContent = 'Processing...';
+                loadingSpinner.classList.remove('hidden');
+                previewContainer.classList.add('fade-out');
+            } else {
+                resizeBtn.disabled = false;
+                resizeBtnText.textContent = 'Resize & Compress';
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        // Handle drag and drop events
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleImageUpload(file);
+            }
+        });
+
+        // Handle click to upload
+        uploadArea.addEventListener('click', () => {
+            imageUpload.click();
+        });
+
+        // Update image information
+        function updateImageInfo(file) {
+            const size = (file.size / 1024).toFixed(2);
+            originalSize.textContent = `${size} KB`;
+            imageInfo.classList.remove('hidden');
+        }
+
+        // Enhanced handleImageUpload function
+        function handleImageUpload(file) {
+            if (!file) return;
+
+            if (!file.type.match('image.*')) {
+                showToast('Please select an image file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    widthInput.value = img.width;
+                    heightInput.value = img.height;
+                    originalAspectRatio = img.width / img.height;
+
+                    originalImageData = e.target.result;
+                    originalDimensions.textContent = `${img.width}x${img.height}`;
+                    originalFormat.textContent = file.type.split('/')[1].toUpperCase();
+                    updateImageInfo(file);
+
+                    previewContainer.classList.remove('fade-in');
+                    previewContainer.classList.add('fade-out');
+                    setTimeout(() => {
+                        preview.src = e.target.result;
+                        preview.classList.remove('hidden');
+                        previewContainer.classList.remove('fade-out');
+                        previewContainer.classList.add('fade-in');
+                        downloadBtn.classList.remove('hidden');
+                        updatePreview();
+                    }, 300);
+
+                    showToast('Image uploaded successfully');
+                };
+                img.src = e.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        // Handle multiple file uploads
+        imageUpload.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleImageUpload(files[0]);
+            }
+        });
+
+        // Fix rotation functionality
+        rotateLeft.addEventListener('click', () => {
+            currentRotation = (currentRotation - 90) % 360;
+            rotationValue.textContent = `${currentRotation}°`;
+            updatePreview();
+        });
+
+        rotateRight.addEventListener('click', () => {
+            currentRotation = (currentRotation + 90) % 360;
+            rotationValue.textContent = `${currentRotation}°`;
+            updatePreview();
+        });
+
+        // Fix crop functionality
+        resetCrop.addEventListener('click', () => {
+            cropX.value = 0;
+            cropY.value = 0;
+            cropWidth.value = 0;
+            cropHeight.value = 0;
+            updatePreview();
+        });
+
+        // Update resizeAndCompressImage function to include rotation and crop
+        function resizeAndCompressImage(imageData, width, height, quality) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Set canvas size based on rotation
+                    if (Math.abs(currentRotation) % 180 === 90) {
+                        canvas.width = height;
+                        canvas.height = width;
+                    } else {
+                        canvas.width = width;
+                        canvas.height = height;
+                    }
+                    
+                    // Apply rotation
+                    ctx.translate(canvas.width / 2, canvas.height / 2);
+                    ctx.rotate(currentRotation * Math.PI / 180);
+                    
+                    // Apply filters
+                    const brightness = parseInt(brightnessSlider.value) / 100;
+                    const contrast = parseInt(contrastSlider.value) / 100;
+                    const saturation = parseInt(saturationSlider.value) / 100;
+                    const sharpness = parseInt(sharpnessSlider.value) / 100;
+                    const blur = parseInt(blurSlider.value);
+                    const grayscale = parseInt(grayscaleSlider.value);
+                    const sepia = parseInt(sepiaSlider.value);
+                    
+                    // Create filter string
+                    let filterString = `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+                    
+                    // Add sharpness effect using multiple blur values
+                    if (sharpness !== 1) {
+                        const sharpnessAmount = (sharpness - 1) * 2;
+                        filterString += ` blur(${Math.abs(sharpnessAmount)}px)`;
+                    }
+                    
+                    // Add other filters
+                    if (blur > 0) filterString += ` blur(${blur}px)`;
+                    if (grayscale > 0) filterString += ` grayscale(${grayscale}%)`;
+                    if (sepia > 0) filterString += ` sepia(${sepia}%)`;
+                    
+                    ctx.filter = filterString;
+                    
+                    // Draw image with crop if specified
+                    const x = parseInt(cropX.value) || 0;
+                    const y = parseInt(cropY.value) || 0;
+                    const cropW = parseInt(cropWidth.value) || img.width;
+                    const cropH = parseInt(cropHeight.value) || img.height;
+                    
+                    ctx.drawImage(img, x, y, cropW, cropH, -width/2, -height/2, width, height);
+                    
+                    const format = imageFormat.value;
+                    const mimeType = `image/${format}`;
+                    const compressedData = canvas.toDataURL(mimeType, quality / 100);
+                    
+                    resolve(compressedData);
+                };
+                img.src = imageData;
+            });
+        }
+
+        // Handle resize button click
+        resizeBtn.addEventListener('click', async function() {
+            if (!preview.src) {
+                showToast('Please upload an image first', 'error');
+                return;
+            }
+
+            const width = parseInt(widthInput.value);
+            const height = parseInt(heightInput.value);
+            const quality = parseInt(qualitySlider.value);
+
+            if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+                showToast('Please enter valid width and height values', 'error');
+                return;
+            }
+
+            try {
+                setLoading(true);
+
+                // Resize and compress the image
+                const processedImageData = await resizeAndCompressImage(
+                    originalImageData,
+                    width,
+                    height,
+                    quality
+                );
+
+                // Update preview with fade effect
+                previewContainer.classList.remove('fade-in');
+                previewContainer.classList.add('fade-out');
+                setTimeout(() => {
+                    preview.src = processedImageData;
+                    previewContainer.classList.remove('fade-out');
+                    previewContainer.classList.add('fade-in');
+                    downloadBtn.classList.remove('hidden');
+                    showToast('Image processed successfully');
+                }, 300);
+
+                // Enable download button
+                downloadBtn.onclick = function() {
+                    // Convert base64 to Blob
+                    const blob = base64ToBlob(processedImageData);
+                    
+                    // Create object URL
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `resized-image-${width}x${height}-q${quality}.jpg`;
+                    
+                    // Append to body, click, and remove
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Clean up object URL
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                    
+                    showToast('Download started');
+                };
+
+            } catch (error) {
+                showToast('Error processing image: ' + error.message, 'error');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Enhanced modal functionality
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalCaption = document.getElementById('modalCaption');
+        const closeBtn = document.getElementsByClassName('modal-close')[0];
+
+        // Add click handlers for preview images
+        document.getElementById('originalPreview').addEventListener('click', function() {
+            if (this.src && !this.classList.contains('hidden')) {
+                openModal(this.src, 'Original Image');
+            }
+        });
+
+        document.getElementById('preview').addEventListener('click', function() {
+            if (this.src && !this.classList.contains('hidden')) {
+                openModal(this.src, 'Processed Image');
+            }
+        });
+
+        // Function to open modal
+        function openModal(src, caption) {
+            modal.style.display = 'block';
+            modalImg.src = src;
+            modalCaption.textContent = caption;
+            
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+            
+            // Add keyboard event listener for ESC key
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // Function to close modal
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            document.removeEventListener('keydown', handleKeyPress);
+        }
+
+        // Handle keyboard events
+        function handleKeyPress(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        }
+
+        // Close modal when clicking the close button
+        closeBtn.onclick = closeModal;
+
+        // Close modal when clicking outside the image
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Prevent modal content from closing when clicking the image
+        modalImg.onclick = function(event) {
+            event.stopPropagation();
+        }
+
+        // Handle image load errors
+        modalImg.onerror = function() {
+            modalCaption.textContent = 'Error loading image';
+            setTimeout(closeModal, 2000);
+        }
+
+        // User Guide and Settings Functionality
+        const guideBtn = document.getElementById('guideBtn');
+        const guideDropdown = document.getElementById('guideDropdown');
+        const defaultQuality = document.getElementById('defaultQuality');
+        const defaultQualityValue = document.getElementById('defaultQualityValue');
+        const defaultFormat = document.getElementById('defaultFormat');
+        const themeSelect = document.getElementById('themeSelect');
+
+        // Toggle guide dropdown
+        guideBtn.addEventListener('click', () => {
+            guideDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!guideBtn.contains(e.target) && !guideDropdown.contains(e.target)) {
+                guideDropdown.classList.add('hidden');
+            }
+        });
+
+        // Default quality slider
+        defaultQuality.addEventListener('input', () => {
+            defaultQualityValue.textContent = `${defaultQuality.value}%`;
+            qualitySlider.value = defaultQuality.value;
+            qualityValue.textContent = `${defaultQuality.value}%`;
+        });
+
+        // Default format selection
+        defaultFormat.addEventListener('change', () => {
+            imageFormat.value = defaultFormat.value;
+        });
+
+        // Theme selection
+        themeSelect.addEventListener('change', () => {
+            document.documentElement.setAttribute('data-theme', themeSelect.value);
+            localStorage.setItem('theme', themeSelect.value);
+        });
+
+        // Load saved settings
+        function loadSettings() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedQuality = localStorage.getItem('defaultQuality') || '80';
+            const savedFormat = localStorage.getItem('defaultFormat') || 'jpeg';
+
+            themeSelect.value = savedTheme;
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            defaultQuality.value = savedQuality;
+            defaultQualityValue.textContent = `${savedQuality}%`;
+            qualitySlider.value = savedQuality;
+            qualityValue.textContent = `${savedQuality}%`;
+            
+            defaultFormat.value = savedFormat;
+            imageFormat.value = savedFormat;
+        }
+
+        // Save settings
+        function saveSettings() {
+            localStorage.setItem('theme', themeSelect.value);
+            localStorage.setItem('defaultQuality', defaultQuality.value);
+            localStorage.setItem('defaultFormat', defaultFormat.value);
+        }
+
+        // Initialize settings
+        loadSettings();
+
+        // Save settings on change
+        defaultQuality.addEventListener('change', saveSettings);
+        defaultFormat.addEventListener('change', saveSettings);
+        themeSelect.addEventListener('change', saveSettings);
+
+        // Batch Processing Variables
+        let batchFiles = [];
+        let processingQueue = [];
+        let isProcessing = false;
+
+        // Enhanced Batch Processing Functions
+        function handleBatchUpload(files) {
+            batchFiles = [...batchFiles, ...Array.from(files)];
+            updateBatchFileList();
+            showToast(`${files.length} files added to batch`, 'success');
+        }
+
+        function updateBatchFileList() {
+            const batchFilesContainer = document.getElementById('batchFiles');
+            const fileList = document.createElement('div');
+            fileList.className = 'file-list';
+            
+            batchFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">${formatFileSize(file.size)}</span>
+                    </div>
+                    <button class="remove-file" data-index="${index}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+            
+            batchFilesContainer.innerHTML = '';
+            batchFilesContainer.appendChild(fileList);
+            
+            // Add event listeners for remove buttons
+            document.querySelectorAll('.remove-file').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.closest('.remove-file').dataset.index);
+                    batchFiles.splice(index, 1);
+                    updateBatchFileList();
+                });
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function processBatchFiles() {
+            if (isProcessing || batchFiles.length === 0) return;
+            
+            isProcessing = true;
+            const progressBar = document.querySelector('.progress-fill');
+            const progressCount = document.querySelector('.progress-count');
+            const progressContainer = document.querySelector('.batch-progress');
+            
+            progressContainer.classList.remove('hidden');
+            progressCount.textContent = `0/${batchFiles.length}`;
+            
+            const processedFiles = [];
+            let processedCount = 0;
+            
+            for (const file of batchFiles) {
+                try {
+                    const processedImage = await processSingleFile(file);
+                    processedFiles.push(processedImage);
+                    processedCount++;
+                    
+                    // Update progress
+                    const progress = (processedCount / batchFiles.length) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    progressCount.textContent = `${processedCount}/${batchFiles.length}`;
+                    
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    showToast(`Error processing ${file.name}`, 'error');
+                }
+            }
+            
+            // Create zip file with all processed images
+            if (processedFiles.length > 0) {
+                const zip = new JSZip();
+                processedFiles.forEach((file, index) => {
+                    zip.file(`processed-${batchFiles[index].name}`, file);
+                });
+                
+                const content = await zip.generateAsync({type: 'blob'});
+                const url = URL.createObjectURL(content);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'processed-images.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+            
+            isProcessing = false;
+            progressContainer.classList.add('hidden');
+            showToast('Batch processing completed', 'success');
+        }
+
+        async function processSingleFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const width = parseInt(widthInput.value);
+                        const height = parseInt(heightInput.value);
+                        const quality = parseInt(qualitySlider.value);
+                        
+                        const processedData = await resizeAndCompressImage(
+                            e.target.result,
+                            width,
+                            height,
+                            quality
+                        );
+                        
+                        const blob = base64ToBlob(processedData, `image/${imageFormat.value}`);
+                        resolve(blob);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Event Listeners for Batch Processing
+        document.getElementById('batchUpload').addEventListener('change', (e) => {
+            handleBatchUpload(e.target.files);
+        });
+
+        document.getElementById('clearBatch').addEventListener('click', () => {
+            batchFiles = [];
+            updateBatchFileList();
+            showToast('Batch cleared', 'info');
+        });
+
+        document.getElementById('processBatch').addEventListener('click', () => {
+            if (batchFiles.length === 0) {
+                showToast('No files to process', 'error');
+                return;
+            }
+            processBatchFiles();
+        });
+    </script>
+</body>
+</html> 
